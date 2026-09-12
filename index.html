@@ -70,7 +70,7 @@
           <i class="fa-solid fa-layer-group text-2xl"></i>
         </div>
         <div>
-          <h1 class="text-2xl font-bold tracking-tight">Soil Alpha ($\alpha$) Calculator</h1>
+          <h1 class="text-2xl font-bold tracking-tight">Soil Alpha (α) Calculator</h1>
           <p class="text-blue-200 text-sm">เครื่องมือคำนวณและพล็อตกราฟค่า Adhesion Factor สำหรับงานวิศวกรรมปฐพี</p>
         </div>
       </div>
@@ -105,7 +105,7 @@
     <div class="hidden print:block mb-6 border-b border-slate-300 pb-4">
       <div class="flex justify-between items-center">
         <div>
-          <h1 class="text-2xl font-bold text-slate-900">รายงานผลการคำนวณค่า Adhesion Factor ($\alpha$)</h1>
+          <h1 class="text-2xl font-bold text-slate-900">รายงานผลการคำนวณค่า Adhesion Factor (α)</h1>
           <p class="text-xs text-slate-600">โครงการทดสอบคุณสมบัติดินเหนียวในงานวิศวกรรมปฐพี (Soil Mechanics Report)</p>
         </div>
         <div class="text-right text-xs text-slate-500" id="printTimestamp"></div>
@@ -122,7 +122,7 @@
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
               <i class="fa-solid fa-calculator text-blue-600 no-print"></i>
-              คำนวณค่า แอลฟา ($\alpha$)
+              คำนวณค่า แอลฟา (α)
             </h2>
             <span class="text-xs bg-blue-100 text-blue-800 font-medium px-2.5 py-0.5 rounded-full no-print">Linear Interpolation</span>
           </div>
@@ -130,7 +130,7 @@
           <div class="space-y-4">
             <div>
               <label for="suInput" class="block text-sm font-medium text-slate-700 mb-1">
-                ป้อนค่า $S_u$ (Undrained Shear Strength) <span class="text-slate-500 font-normal">(t/m²)</span>
+                ป้อนค่า S<sub>u</sub> (Undrained Shear Strength) <span class="text-slate-500 font-normal">(t/m²)</span>
               </label>
               <div class="relative rounded-md shadow-sm">
                 <input 
@@ -167,15 +167,10 @@
           <div class="mt-6 p-5 bg-gradient-to-br from-slate-900 to-blue-950 rounded-xl text-white shadow-lg relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl no-print"></div>
             
-            <div class="text-xs font-semibold uppercase tracking-wider text-blue-300 mb-1">ผลลัพธ์ค่าแอลฟา ($\alpha$)</div>
+            <div class="text-xs font-semibold uppercase tracking-wider text-blue-300 mb-1">ผลลัพธ์ค่าแอลฟา (α)</div>
             <div class="flex items-baseline justify-between">
               <span id="alphaResult" class="text-4xl font-extrabold tracking-tight text-white">0.9919</span>
               <span class="text-xs bg-blue-500/30 border border-blue-400/30 text-blue-200 px-2.5 py-1 rounded-md no-print">Linear Interpolation</span>
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-slate-700/60 flex justify-between items-center text-xs text-slate-300">
-              <span>Adhesion ($f_s = \alpha \cdot S_u$):</span>
-              <span id="adhesionResult" class="font-bold text-blue-300 text-sm">1.6019 t/m²</span>
             </div>
           </div>
         </div>
@@ -192,16 +187,16 @@
 
           <div id="interpolationDetails" class="space-y-3 text-sm">
             <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 rounded-lg text-xs font-mono">
-              <div>จุดต่ำกว่า ($S_{u1}$): <span id="su1Val" class="font-bold">1.600</span></div>
-              <div>$\alpha_1$ = <span id="a1Val" class="font-bold">0.994</span></div>
-              <div>จุดสูงกว่า ($S_{u2}$): <span id="su2Val" class="font-bold">1.700</span></div>
-              <div>$\alpha_2$ = <span id="a2Val" class="font-bold">0.980</span></div>
+              <div>จุดต่ำกว่า (S<sub>u1</sub>): <span id="su1Val" class="font-bold">1.600</span></div>
+              <div>α<sub>1</sub> = <span id="a1Val" class="font-bold">0.994</span></div>
+              <div>จุดสูงกว่า (S<sub>u2</sub>): <span id="su2Val" class="font-bold">1.700</span></div>
+              <div>α<sub>2</sub> = <span id="a2Val" class="font-bold">0.980</span></div>
             </div>
 
             <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-100 text-xs">
               <div class="font-semibold text-blue-900 mb-1">สูตรการคำนวณ:</div>
               <div class="font-mono text-center text-slate-700 py-1 bg-white rounded border border-slate-200 mb-2">
-                $\alpha = \alpha_1 + [ (S_u - S_{u1}) / (S_{u2} - S_{u1}) ] \times (\alpha_2 - \alpha_1)$
+                α = α<sub>1</sub> + [ (S<sub>u</sub> - S<sub>u1</sub>) / (S<sub>u2</sub> - S<sub>u1</sub>) ] × (α<sub>2</sub> - α<sub>1</sub>)
               </div>
               <div id="calcSteps" class="font-mono text-slate-600 space-y-1">
                 <!-- Calculated dynamically -->
@@ -236,9 +231,9 @@
             <div>
               <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <i class="fa-solid fa-chart-line text-blue-600 no-print"></i>
-                กราฟแสดงตำแหน่ง ($S_u$ vs $\alpha$)
+                กราฟแสดงตำแหน่ง (S<sub>u</sub> vs α)
               </h2>
-              <p class="text-xs text-slate-500">จุดสีแดงแสดงตำแหน่งค่า $S_u$ และ $\alpha$ ที่คุณป้อน</p>
+              <p class="text-xs text-slate-500">จุดสีแดงแสดงตำแหน่งค่า S<sub>u</sub> และ α ที่คุณป้อน</p>
             </div>
             
             <div class="flex items-center space-x-2 no-print">
@@ -259,7 +254,7 @@
           <div class="mt-4 flex flex-wrap items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100 gap-2">
             <div class="flex items-center space-x-4">
               <span class="flex items-center gap-1.5">
-                <span class="w-3 h-1 bg-blue-500 rounded-full inline-block"></span> เส้นข้อมูลอ้างอิง ($\alpha$)
+                <span class="w-3 h-1 bg-blue-500 rounded-full inline-block"></span> เส้นข้อมูลอ้างอิง (α)
               </span>
               <span class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 bg-red-500 rounded-full inline-block"></span> ตำแหน่งที่คำนวณได้
@@ -313,7 +308,7 @@
         <div id="aiReportContainer" class="bg-slate-50 rounded-xl p-5 border border-slate-200 min-h-[140px] flex items-center justify-center text-slate-500 text-sm">
           <div class="text-center">
             <i class="fa-solid fa-robot text-3xl text-slate-300 mb-2 no-print"></i>
-            <p>กดปุ่ม <strong>"วิเคราะห์ด้วย AI"</strong> เพื่อสร้างรายงานประเมินสภาพชั้นดินและพฤติกรรมเสาเข็มตามค่า $S_u$ ปัจจุบัน</p>
+            <p>กดปุ่ม <strong>"วิเคราะห์ด้วย AI"</strong> เพื่อสร้างรายงานประเมินสภาพชั้นดินและพฤติกรรมเสาเข็มตามค่า S<sub>u</sub> ปัจจุบัน</p>
           </div>
         </div>
       </div>
@@ -327,10 +322,10 @@
               เปรียบเทียบ Alpha Method vs Beta Method
             </button>
             <button onclick="askQuestion('ค่า Alpha Factor ต่ำกว่า 0.4 หมายความว่าอย่างไรในการรับแรงเสียดทานผิว?')" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-200 transition-colors">
-              ความหมายเมื่อ $\alpha < 0.4$
+              ความหมายเมื่อ α &lt; 0.4
             </button>
             <button onclick="askQuestion('ข้อระวังในการใช้ค่า Su จาก Unconfined Compression Test กับ Alpha Method')" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg border border-purple-200 transition-colors">
-              ข้อควรระวังการใช้ค่า $S_u$ จาก UC Test
+              ข้อควรระวังการใช้ค่า S<sub>u</sub> จาก UC Test
             </button>
           </div>
         </div>
@@ -365,7 +360,7 @@
         <div>
           <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
             <i class="fa-solid fa-table text-blue-600 no-print"></i>
-            ตารางข้อมูลอ้างอิง ($S_u$ vs $\alpha$)
+            ตารางข้อมูลอ้างอิง (S<sub>u</sub> vs α)
           </h2>
           <p class="text-xs text-slate-500">ตารางอ้างอิงค่าการยึดเกาะของดินเหนียว (Adhesion Factor)</p>
         </div>
@@ -386,9 +381,9 @@
           <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0 border-b border-slate-200">
             <tr>
               <th scope="col" class="px-6 py-3">ลำดับ</th>
-              <th scope="col" class="px-6 py-3">ค่า $S_u$ (t/m²)</th>
-              <th scope="col" class="px-6 py-3">ค่าแอลฟา ($\alpha$)</th>
-              <th scope="col" class="px-6 py-3">คำนวณ $f_s = \alpha \cdot S_u$ (t/m²)</th>
+              <th scope="col" class="px-6 py-3">ค่า S<sub>u</sub> (t/m²)</th>
+              <th scope="col" class="px-6 py-3">ค่าแอลฟา (α)</th>
+              <th scope="col" class="px-6 py-3">คำนวณ f<sub>s</sub> = α · S<sub>u</sub> (t/m²)</th>
               <th scope="col" class="px-6 py-3">สถานะ</th>
             </tr>
           </thead>
@@ -617,11 +612,9 @@
 
       const res = calculateAlpha(suInput);
       const alphaVal = res.alpha;
-      const fsVal = alphaVal * suInput;
 
       // Update UI cards
       document.getElementById('alphaResult').innerText = alphaVal.toFixed(4);
-      document.getElementById('adhesionResult').innerText = `${fsVal.toFixed(4)} t/m²`;
       document.getElementById('posLabel').innerText = `Su = ${suInput.toFixed(3)} t/m², α = ${alphaVal.toFixed(4)}`;
 
       // Update Step-by-Step details
@@ -633,7 +626,6 @@
       const dSu = (suInput - res.su1).toFixed(3);
       const dSuInterval = (res.su2 - res.su1).toFixed(3);
       const dAlpha = (res.a2 - res.a1).toFixed(4);
-      const ratio = (dSu / dSuInterval).toFixed(3);
 
       document.getElementById('calcSteps').innerHTML = `
         <div>α = ${res.a1.toFixed(4)} + [ (${suInput.toFixed(3)} - ${res.su1.toFixed(3)}) / (${res.su2.toFixed(3)} - ${res.su1.toFixed(3)}) ] × (${res.a2.toFixed(4)} - ${res.a1.toFixed(4)})</div>
