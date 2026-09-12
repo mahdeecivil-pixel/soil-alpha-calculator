@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Alpha ($\alpha$) Calculator & AI Analysis</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Sarabun & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Sarabun', 'Inter', 'sans-serif'],
+                        mono: ['monospace']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        ai: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Sarabun', 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .markdown-body h3 { font-weight: 700; font-size: 0.95rem; margin-top: 0.75rem; margin-bottom: 0.25rem; color: #1e293b; }
+        .markdown-body p { margin-bottom: 0.5rem; line-height: 1.5; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+        .markdown-body strong { color: #0f172a; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <header class="bg-gradient-to-r from-slate-900 via-slate-800 to-brand-900 text-white shadow-lg border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center text-white shadow-md font-bold text-xl">
+                    <i class="fa-solid font-mono">&alpha;</i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl font-bold leading-tight tracking-wide">เครื่องมือคำนวณและวิเคราะห์ค่า $\alpha$ (Alpha)</h1>
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-ai-600 text-white flex items-center gap-1 shadow-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> AI Powered
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300">Geotechnical Engineering: Undrained Shear Strength ($S_u$) vs Adhesion Factor ($\alpha$)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="exportToCSV()" class="text-xs bg-slate-700/80 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg transition border border-slate-600 flex items-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> ส่งออกข้อมูล (CSV)
+                </button>
+                <button onclick="window.print()" class="text-xs bg-brand-600 hover:bg-brand-500 text-white px-3 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-print"></i> พิมพ์รายงาน
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Calculation Controls & Interpolation Steps -->
+        <div class="lg:col-span-5 space-y-6">
+
+            <!-- Card 1: Input & Calculation -->
+            <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-brand-600"></i> คำนวณค่า แอลฟา ($\alpha$)
+                    </h2>
+                    <span class="text-xs px-2.5 py-1 rounded-full bg-brand-50 text-brand-700 font-medium border border-brand-100">Linear Interpolation</span>
+                </div>
+
+                <!-- Input Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="suInput" class="block text-sm font-semibold text-slate-700 mb-1">
+                            ป้อนค่า $S_u$ (Undrained Shear Strength) <span class="text-brand-600 font-normal">(t/m²)</span>
+                        </label>
+                        <div class="relative rounded-xl shadow-sm">
+                            <input type="number" id="suInput" value="1.615" step="0.001" min="0.78" max="25"
+                                   class="w-full text-lg font-bold text-slate-900 bg-white border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition shadow-inner"
+                                   placeholder="เช่น 1.615" oninput="calculateAlpha()">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 font-medium text-sm">
+                                t/m²
+                            </div>
+                        </div>
+                        <p id="rangeError" class="text-xs text-amber-600 mt-1 hidden flex items-center gap-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i> หมายเหตุ: ข้อมูลอ้างอิงอยู่ในช่วง 0.780 - 25.000 t/m²
+                        </p>
+                    </div>
+
+                    <!-- Quick Preset Buttons -->
+                    <div>
+                        <span class="text-xs text-slate-500 font-medium mb-1.5 block">ค่าตัวอย่างด่วน:</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="setSu(0.8)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">0.800</button>
+                            <button onclick="setSu(1.615)" class="px-2.5 py-1 text-xs bg-brand-100 hover:bg-brand-200 text-brand-800 rounded-lg font-semibold border border-brand-300 transition">1.615 (โจทย์)</button>
+                            <button onclick="setSu(2.5)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">2.500</button>
+                            <button onclick="setSu(5.0)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">5.000</button>
+                            <button onclick="setSu(10.0)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">10.00</button>
+                            <button onclick="setSu(20.0)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition">20.00</button>
+                        </div>
+                    </div>
+
+                    <!-- Result Badge Box -->
+                    <div class="mt-5 p-5 bg-gradient-to-br from-brand-600 to-slate-900 rounded-xl text-white shadow-lg relative overflow-hidden">
+                        <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black font-mono select-none pointer-events-none">&alpha;</div>
+                        <div class="text-xs uppercase tracking-wider text-brand-200 font-semibold mb-1">ผลลัพธ์ค่าแอลฟา ($\alpha$)</div>
+                        <div class="flex items-baseline justify-between">
+                            <div class="text-4xl font-extrabold font-mono tracking-tight" id="alphaResult">0.9919</div>
+                            <div class="text-xs text-slate-300 font-medium bg-white/10 px-2.5 py-1 rounded-md backdrop-blur-sm" id="exactNote">คำนวณแบบ Interpolation</div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-white/15 flex justify-between items-center text-xs text-brand-100 font-mono">
+                            <span>Adhesion ($f_s = \alpha \cdot S_u$):</span>
+                            <span class="font-bold text-amber-300 text-sm" id="adhesionResult">1.6019 t/m²</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Card 2: Linear Interpolation Calculation Details -->
+            <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-square-root-variable text-brand-600 mr-2"></i> ขั้นตอนการบัญญัติไตรยางศ์ (Step-by-Step)</span>
+                    <button onclick="toggleDetails()" class="text-xs text-brand-600 hover:underline" id="toggleDetailsBtn">ซ่อนรายละเอียด</button>
+                </h3>
+                
+                <div id="detailsSection" class="space-y-3 text-xs text-slate-600">
+                    <div class="bg-slate-100 p-3 rounded-xl space-y-1.5 font-mono text-slate-700">
+                        <div class="flex justify-between"><span>จุดต่ำกว่า ($S_{u1}$):</span> <strong id="su1Val" class="text-slate-900">1.600</strong> &rarr; &alpha;<sub>1</sub> = <strong id="a1Val" class="text-slate-900">0.994</strong></div>
+                        <div class="flex justify-between"><span>จุดสูงกว่า ($S_{u2}$):</span> <strong id="su2Val" class="text-slate-900">1.700</strong> &rarr; &alpha;<sub>2</sub> = <strong id="a2Val" class="text-slate-900">0.980</strong></div>
+                    </div>
+
+                    <div class="p-3 bg-brand-50/50 rounded-xl border border-brand-100 text-slate-700 space-y-2">
+                        <div class="font-semibold text-brand-900">สูตรการคำนวณ:</div>
+                        <div class="font-mono text-[11px] bg-white p-2 rounded border border-brand-200 text-center text-slate-800 overflow-x-auto">
+                            &alpha; = &alpha;<sub>1</sub> + [ (S<sub>u</sub> - S<sub>u1</sub>) / (S<sub>u2</sub> - S<sub>u1</sub>) ] &times; (&alpha;<sub>2</sub> - &alpha;<sub>1</sub>)
+                        </div>
+                        <div class="font-mono text-[11px] text-slate-600 pt-1" id="calculationFormulaText">
+                            &alpha; = 0.994 + [ (1.615 - 1.600) / (1.700 - 1.600) ] &times; (0.980 - 0.994)
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 flex justify-between items-center">
+                        <span class="font-medium"><i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> สูตร Excel ที่เสถียรที่สุด:</span>
+                        <button onclick="copyExcelFormula()" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded shadow-sm transition">
+                            <i class="fa-regular fa-copy"></i> คัดลอกสูตร Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Interactive Plot & Gemini AI Features -->
+        <div class="lg:col-span-7 space-y-6">
+
+            <!-- Card 3: Position Graph Plot -->
+            <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-brand-600"></i> กราฟแสดงตำแหน่ง ($S_u$ vs $\alpha$)
+                        </h2>
+                        <p class="text-xs text-slate-500">จุดสีแดงแสดงตำแหน่งค่า $S_u$ และ $\alpha$ ที่คุณป้อน</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="resetZoomChart()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg transition font-medium">
+                            <i class="fa-solid fa-arrows-rotate"></i> ขยายทั้งกราฟ
+                        </button>
+                        <button onclick="focusUserPoint()" class="text-xs bg-brand-50 hover:bg-brand-100 text-brand-700 px-2.5 py-1.5 rounded-lg border border-brand-200 transition font-semibold">
+                            <i class="fa-solid fa-crosshairs"></i> ซูมตำแหน่งปัจจุบัน
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Canvas Chart Container -->
+                <div class="relative w-full h-[340px] sm:h-[380px]">
+                    <canvas id="alphaChart"></canvas>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center justify-between text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-brand-600 inline-block"></span> เส้นข้อมูลอ้างอิง ($\alpha$)</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> ตำแหน่งที่คำนวณได้</span>
+                    </div>
+                    <div class="font-mono text-slate-600" id="currentCoordinatesText">Position: Su = 1.615, &alpha; = 0.9919</div>
+                </div>
+            </div>
+
+            <!-- Card 4: Gemini AI Geotechnical Analysis & Assistant -->
+            <div class="glass-panel rounded-2xl p-6 shadow-sm border border-ai-200 relative overflow-hidden bg-gradient-to-b from-white via-ai-50/20 to-white">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-ai-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800">ผู้ช่วยวิเคราะห์ทางปฐพีวิศวกรรม (AI Geotechnical Assistant)</h2>
+                            <p class="text-xs text-slate-500">ขับเคลื่อนด้วย Gemini 3 Flash Preview</p>
+                        </div>
+                    </div>
+                    <button onclick="runAiAnalysis()" id="aiAnalyzeBtn" class="text-xs bg-ai-600 hover:bg-ai-700 text-white font-semibold px-3.5 py-2 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> วิเคราะห์ด้วย AI
+                    </button>
+                </div>
+
+                <!-- AI Tabs: Automatic Report vs Q&A Consultant -->
+                <div class="flex border-b border-slate-200 mb-4 text-xs font-semibold">
+                    <button onclick="switchAiTab('report')" id="tabBtnReport" class="px-4 py-2 text-ai-600 border-b-2 border-ai-600 flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-contract"></i> รายงานวิเคราะห์สภาพชั้นดิน
+                    </button>
+                    <button onclick="switchAiTab('chat')" id="tabBtnChat" class="px-4 py-2 text-slate-500 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-1.5">
+                        <i class="fa-solid fa-comments"></i> ถาม-ตอบ ปัญหาปฐพีวิศวกรรม
+                    </button>
+                </div>
+
+                <!-- Tab 1: AI Report Output Container -->
+                <div id="aiReportTab" class="space-y-3">
+                    <div id="aiReportContent" class="text-xs text-slate-700 leading-relaxed bg-slate-50/80 p-4 rounded-xl border border-slate-200 custom-scrollbar max-h-60 overflow-y-auto markdown-body">
+                        <p class="text-slate-500 italic flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-ai-500"></i> คลิกปุ่ม "วิเคราะห์ด้วย AI" เพื่อประเมินจำแนกชั้นดิน, ค่าแรงยึดเกาะผิว ($f_s$), และข้อควรระวังการเลือกประเภทเสาเข็มสำหรับ $S_u = 1.615$ t/m²
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tab 2: AI Q&A Assistant -->
+                <div id="aiChatTab" class="hidden space-y-3">
+                    <div class="flex gap-2">
+                        <input type="text" id="aiUserQuery" placeholder="สอบถาม AI เกี่ยวกับ Alpha Method หรือพฤติกรรมดิน..."
+                               class="text-xs w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-ai-500"
+                               onkeypress="if(event.key==='Enter') sendAiChatQuery()">
+                        <button onclick="sendAiChatQuery()" id="aiSendBtn" class="text-xs bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2.5 rounded-xl transition flex items-center gap-1">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <!-- Quick Prompt Suggestions -->
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="text-[10px] text-slate-400 font-medium self-center">คำถามแนะนำ:</span>
+                        <button onclick="setQuickQuery('ข้อจำกัดของการใช้ค่า Alpha ในงานเสาเข็มเจาะ (Bored Piles)')" class="text-[11px] bg-slate-100 hover:bg-ai-50 hover:text-ai-700 text-slate-600 px-2 py-1 rounded-md transition border border-slate-200">ข้อจำกัดเสาเข็มเจาะ</button>
+                        <button onclick="setQuickQuery('เปรียบเทียบ Alpha Method (α) กับ Beta Method (β) และ Lambda Method (λ)')" class="text-[11px] bg-slate-100 hover:bg-ai-50 hover:text-ai-700 text-slate-600 px-2 py-1 rounded-md transition border border-slate-200">เปรียบเทียบ $\alpha, \beta, \lambda$</button>
+                        <button onclick="setQuickQuery('แนวทางการรับแรงเสียดทานผิวในดินเหนียวแข็ง (Stiff Clay)')" class="text-[11px] bg-slate-100 hover:bg-ai-50 hover:text-ai-700 text-slate-600 px-2 py-1 rounded-md transition border border-slate-200">ดินเหนียวแข็ง Stiff Clay</button>
+                    </div>
+                    <div id="aiChatAnswer" class="text-xs text-slate-700 bg-slate-50/80 p-4 rounded-xl border border-slate-200 custom-scrollbar max-h-52 overflow-y-auto markdown-body hidden">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5: Reference Data Table -->
+            <div class="glass-panel rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-brand-600"></i> ตารางข้อมูลอ้างอิง ($S_u$ - $\alpha$)
+                    </h3>
+                    <div class="relative">
+                        <input type="text" id="tableSearch" placeholder="ค้นหา Su หรือ Alpha..." onkeyup="filterTable()"
+                               class="text-xs bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500 w-44">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+
+                <!-- Scrollable Table -->
+                <div class="max-h-52 overflow-y-auto custom-scrollbar border border-slate-200 rounded-xl">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-slate-100 sticky top-0 text-slate-700 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-2.5 text-center w-16">#</th>
+                                <th class="p-2.5 text-center">Su (t/m²)</th>
+                                <th class="p-2.5 text-center">&alpha; (Alpha)</th>
+                                <th class="p-2.5 text-center">สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-slate-100 font-mono">
+                            <!-- Filled dynamically by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-4 px-4 text-center text-xs border-t border-slate-800 mt-auto">
+        <p>เครื่องมือคำนวณด้านวิศวกรรมปฐพี &bull; Soil Mechanics Adhesion Factor ($\alpha$) Interpolation Tool & Powered by Gemini AI</p>
+    </footer>
+
+    <script>
+        // Full dataset extracted from Test.xlsx
+        const rawData = [
+            [0.78, 1.130], [0.80, 1.120], [0.90, 1.098], [1.00, 1.084], [1.10, 1.068],
+            [1.20, 1.052], [1.30, 1.038], [1.40, 1.023], [1.50, 1.008], [1.60, 0.994],
+            [1.70, 0.980], [1.80, 0.968], [1.90, 0.953], [2.00, 0.940], [2.10, 0.928],
+            [2.20, 0.912], [2.30, 0.898], [2.40, 0.883], [2.50, 0.869], [2.60, 0.853],
+            [2.70, 0.839], [2.80, 0.823], [2.90, 0.809], [3.00, 0.793], [3.10, 0.779],
+            [3.20, 0.762], [3.30, 0.749], [3.40, 0.735], [3.50, 0.720], [3.60, 0.707],
+            [3.70, 0.692], [3.80, 0.679], [3.90, 0.663], [4.00, 0.650], [4.10, 0.633],
+            [4.20, 0.619], [4.30, 0.603], [4.40, 0.589], [4.50, 0.573], [4.60, 0.560],
+            [4.70, 0.547], [4.80, 0.534], [4.90, 0.523], [5.00, 0.514], [5.10, 0.506],
+            [5.20, 0.499], [5.30, 0.490], [5.40, 0.484], [5.50, 0.479], [5.60, 0.471],
+            [5.70, 0.467], [5.80, 0.460], [5.90, 0.456], [6.00, 0.450], [6.10, 0.445],
+            [6.20, 0.440], [6.30, 0.438], [6.40, 0.434], [6.50, 0.431], [6.60, 0.429],
+            [6.70, 0.426], [6.80, 0.423], [6.90, 0.421], [7.00, 0.419], [7.10, 0.418],
+            [7.20, 0.415], [7.30, 0.413], [7.40, 0.411], [7.50, 0.410], [7.60, 0.408],
+            [7.70, 0.406], [7.80, 0.405], [7.90, 0.404], [8.00, 0.403], [8.10, 0.401],
+            [8.20, 0.4005], [8.30, 0.4000], [8.40, 0.3998], [8.50, 0.3995], [8.60, 0.3980],
+            [8.70, 0.3978], [8.80, 0.3977], [8.90, 0.3976], [9.00, 0.3975], [9.10, 0.3974],
+            [9.20, 0.3974], [9.30, 0.3973], [9.40, 0.3972], [9.50, 0.3971], [9.60, 0.3969],
+            [9.70, 0.3968], [9.80, 0.3967], [9.90, 0.3966], [10.0, 0.3964], [10.1, 0.3950],
+            [10.2, 0.3940], [10.3, 0.3938], [10.4, 0.3935], [10.5, 0.3932], [10.6, 0.3930],
+            [10.7, 0.3925], [10.8, 0.3924], [10.9, 0.3922], [11.0, 0.3919], [11.1, 0.3917],
+            [11.2, 0.3915], [11.3, 0.3913], [11.4, 0.3910], [11.5, 0.3907], [11.6, 0.3901],
+            [11.7, 0.3900], [11.8, 0.3900], [11.9, 0.3899], [12.0, 0.3891], [12.1, 0.3885],
+            [12.2, 0.3883], [12.3, 0.3882], [12.4, 0.3881], [12.5, 0.3879], [12.6, 0.3878],
+            [12.7, 0.3876], [12.8, 0.3870], [12.9, 0.3865], [13.0, 0.3864], [13.1, 0.3862],
+            [13.2, 0.3859], [13.3, 0.3855], [13.4, 0.3850], [13.5, 0.3845], [13.6, 0.3840],
+            [13.7, 0.3839], [13.8, 0.3837], [13.9, 0.3835], [14.0, 0.3830], [14.1, 0.3827],
+            [14.2, 0.3825], [14.3, 0.3824], [14.4, 0.3820], [14.5, 0.3819], [14.6, 0.3815],
+            [14.7, 0.3813], [14.8, 0.3809], [14.9, 0.3805], [15.0, 0.3800], [15.1, 0.3797],
+            [15.2, 0.3790], [15.3, 0.3788], [15.4, 0.3785], [15.5, 0.3783], [15.6, 0.3779],
+            [15.7, 0.3773], [15.8, 0.3765], [15.9, 0.3763], [16.0, 0.3763], [16.1, 0.3760],
+            [16.2, 0.3755], [16.3, 0.3750], [16.4, 0.3749], [16.5, 0.3747], [16.6, 0.3742],
+            [16.7, 0.3730], [16.8, 0.3728], [16.9, 0.3725], [17.0, 0.3720], [17.1, 0.3715],
+            [17.2, 0.3712], [17.3, 0.3711], [17.4, 0.3705], [17.5, 0.3700], [17.6, 0.3695],
+            [17.7, 0.3690], [17.8, 0.3686], [17.9, 0.3683], [18.0, 0.3675], [18.1, 0.3672],
+            [18.2, 0.3669], [18.3, 0.3663], [18.4, 0.3658], [18.5, 0.3652], [18.6, 0.3649],
+            [18.7, 0.3644], [18.8, 0.3638], [18.9, 0.3635], [19.0, 0.3634], [19.1, 0.3629],
+            [19.2, 0.3624], [19.3, 0.3618], [19.4, 0.3614], [19.5, 0.3610], [19.6, 0.3608],
+            [19.7, 0.3600], [19.8, 0.3600], [19.9, 0.3598], [20.0, 0.3592], [20.1, 0.3586],
+            [20.2, 0.3582], [20.3, 0.3580], [20.4, 0.3578], [20.5, 0.3576], [20.6, 0.3570],
+            [20.7, 0.3565], [20.8, 0.3564], [20.9, 0.3562], [21.0, 0.3561], [21.1, 0.3560],
+            [21.2, 0.3553], [21.3, 0.3549], [21.4, 0.3545], [21.5, 0.3543], [21.6, 0.3540],
+            [21.7, 0.3539], [21.8, 0.3537], [21.9, 0.3535], [22.0, 0.3529], [22.1, 0.3527],
+            [22.2, 0.3526], [22.3, 0.3525], [22.4, 0.3524], [22.5, 0.3523], [22.6, 0.3519],
+            [22.7, 0.3518], [22.8, 0.3510], [22.9, 0.3508], [23.0, 0.3505], [23.1, 0.3504],
+            [23.2, 0.3502], [23.3, 0.3500], [23.4, 0.3498], [23.5, 0.3488], [23.6, 0.3487],
+            [23.7, 0.3485], [23.8, 0.3483], [23.9, 0.3480], [24.0, 0.3476], [24.1, 0.3475],
+            [24.2, 0.3473], [24.3, 0.3472], [24.4, 0.3470], [24.5, 0.3468], [24.6, 0.3465],
+            [24.7, 0.3463], [24.8, 0.3459], [24.9, 0.3452], [25.0, 0.3450]
+        ];
+
+        let chart = null;
+
+        function calculateInterpolatedAlpha(targetSu) {
+            if (targetSu <= rawData[0][0]) {
+                return { alpha: rawData[0][1], su1: rawData[0][0], su2: rawData[1][0], a1: rawData[0][1], a2: rawData[1][1], exact: true };
+            }
+            if (targetSu >= rawData[rawData.length - 1][0]) {
+                const last = rawData[rawData.length - 1];
+                const prev = rawData[rawData.length - 2];
+                return { alpha: last[1], su1: prev[0], su2: last[0], a1: prev[1], a2: last[1], exact: true };
+            }
+
+            for (let i = 0; i < rawData.length - 1; i++) {
+                const x1 = rawData[i][0];
+                const y1 = rawData[i][1];
+                const x2 = rawData[i + 1][0];
+                const y2 = rawData[i + 1][1];
+
+                if (targetSu === x1) {
+                    return { alpha: y1, su1: x1, su2: x2, a1: y1, a2: y2, exact: true };
+                }
+
+                if (targetSu > x1 && targetSu < x2) {
+                    const alpha = y1 + ((targetSu - x1) / (x2 - x1)) * (y2 - y1);
+                    return { alpha: alpha, su1: x1, su2: x2, a1: y1, a2: y2, exact: false };
+                }
+            }
+
+            const last = rawData[rawData.length - 1];
+            return { alpha: last[1], su1: last[0], su2: last[0], a1: last[1], a2: last[1], exact: true };
+        }
+
+        function calculateAlpha() {
+            const suInput = document.getElementById('suInput');
+            const targetSu = parseFloat(suInput.value);
+
+            if (isNaN(targetSu)) {
+                document.getElementById('alphaResult').innerText = "---";
+                document.getElementById('adhesionResult').innerText = "--- t/m²";
+                return;
+            }
+
+            // Warning range check
+            const rangeError = document.getElementById('rangeError');
+            if (targetSu < 0.78 || targetSu > 25.0) {
+                rangeError.classList.remove('hidden');
+            } else {
+                rangeError.classList.add('hidden');
+            }
+
+            const res = calculateInterpolatedAlpha(targetSu);
+            const alphaFormatted = res.alpha.toFixed(4);
+            const adhesionFs = (res.alpha * targetSu).toFixed(4);
+
+            document.getElementById('alphaResult').innerText = alphaFormatted;
+            document.getElementById('exactNote').innerText = res.exact ? "ค่าตรงในตาราง" : "Linear Interpolation";
+            document.getElementById('adhesionResult').innerText = `${adhesionFs} t/m²`;
+
+            // Update Breakdown Details
+            document.getElementById('su1Val').innerText = res.su1.toFixed(3);
+            document.getElementById('a1Val').innerText = res.a1.toFixed(3);
+            document.getElementById('su2Val').innerText = res.su2.toFixed(3);
+            document.getElementById('a2Val').innerText = res.a2.toFixed(3);
+
+            const suDiff = (res.su2 - res.su1).toFixed(3);
+            const aDiff = (res.a2 - res.a1).toFixed(4);
+            const targetDiff = (targetSu - res.su1).toFixed(3);
+
+            document.getElementById('calculationFormulaText').innerHTML = 
+                `&alpha; = ${res.a1.toFixed(3)} + [ (${targetSu.toFixed(3)} - ${res.su1.toFixed(3)}) / (${res.su2.toFixed(3)} - ${res.su1.toFixed(3)}) ] &times; (${res.a2.toFixed(3)} - ${res.a1.toFixed(3)})<br>` +
+                `<span class="text-brand-700 font-bold">&alpha; = ${res.a1.toFixed(3)} + [ ${targetDiff} / ${suDiff} ] &times; (${aDiff}) = ${alphaFormatted}</span>`;
+
+            document.getElementById('currentCoordinatesText').innerText = `Position: Su = ${targetSu.toFixed(3)} t/m², \u03B1 = ${alphaFormatted}`;
+
+            updateChart(targetSu, res.alpha);
+            highlightTableRow(res.su1, res.su2);
+        }
+
+        function setSu(val) {
+            document.getElementById('suInput').value = val;
+            calculateAlpha();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('alphaChart').getContext('2d');
+            const mainLineData = rawData.map(p => ({ x: p[0], y: p[1] }));
+
+            // Custom Chart.js Plugin for guide lines and badges
+            const crosshairPlugin = {
+                id: 'crosshairLines',
+                afterDatasetsDraw(chart) {
+                    const { ctx, chartArea: { top, bottom, left, right }, scales: { x, y } } = chart;
+                    const point = chart.data.datasets[1]?.data[0];
+                    if (!point) return;
+
+                    const xPx = x.getPixelForValue(point.x);
+                    const yPx = y.getPixelForValue(point.y);
+
+                    if (xPx >= left && xPx <= right && yPx >= top && yPx <= bottom) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.setLineDash([5, 5]);
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeStyle = '#f43f5e';
+
+                        // Vertical line down to X axis
+                        ctx.moveTo(xPx, yPx);
+                        ctx.lineTo(xPx, bottom);
+
+                        // Horizontal line left to Y axis
+                        ctx.moveTo(xPx, yPx);
+                        ctx.lineTo(left, yPx);
+
+                        ctx.stroke();
+                        ctx.restore();
+
+                        // Badges
+                        ctx.save();
+                        ctx.font = 'bold 11px Sarabun, sans-serif';
+
+                        // 1. Point Callout Badge
+                        const labelText = `Su = ${point.x.toFixed(3)}, \u03B1 = ${point.y.toFixed(4)}`;
+                        const badgeWidth = ctx.measureText(labelText).width + 16;
+                        const badgeHeight = 22;
+
+                        let badgeX = xPx + 10;
+                        let badgeY = yPx - 28;
+
+                        if (badgeX + badgeWidth > right - 5) badgeX = xPx - badgeWidth - 10;
+                        if (badgeY < top + 5) badgeY = yPx + 12;
+
+                        ctx.fillStyle = '#f43f5e';
+                        ctx.beginPath();
+                        if (ctx.roundRect) ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 6);
+                        else ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+                        ctx.fill();
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(labelText, badgeX + badgeWidth / 2, badgeY + badgeHeight / 2);
+
+                        // 2. Axis Tag on X-axis
+                        const xTagText = `Su = ${point.x.toFixed(3)}`;
+                        const xTagWidth = ctx.measureText(xTagText).width + 10;
+                        const xTagHeight = 18;
+                        ctx.fillStyle = '#e11d48';
+                        ctx.beginPath();
+                        if (ctx.roundRect) ctx.roundRect(xPx - xTagWidth / 2, bottom + 2, xTagWidth, xTagHeight, 4);
+                        else ctx.rect(xPx - xTagWidth / 2, bottom + 2, xTagWidth, xTagHeight);
+                        ctx.fill();
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(xTagText, xPx, bottom + 2 + xTagHeight / 2);
+
+                        // 3. Axis Tag on Y-axis
+                        const yTagText = `\u03B1 = ${point.y.toFixed(4)}`;
+                        const yTagWidth = ctx.measureText(yTagText).width + 10;
+                        const yTagHeight = 18;
+                        ctx.fillStyle = '#e11d48';
+                        ctx.beginPath();
+                        if (ctx.roundRect) ctx.roundRect(left - yTagWidth - 2, yPx - yTagHeight / 2, yTagWidth, yTagHeight, 4);
+                        else ctx.rect(left - yTagWidth - 2, yPx - yTagHeight / 2, yTagWidth, yTagHeight);
+                        ctx.fill();
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(yTagText, left - yTagWidth / 2 - 2, yPx);
+
+                        ctx.restore();
+                    }
+                }
+            };
+
+            chart = new Chart(ctx, {
+                type: 'scatter',
+                plugins: [crosshairPlugin],
+                data: {
+                    datasets: [
+                        {
+                            label: 'ค่าอ้างอิง α (Reference Curve)',
+                            data: mainLineData,
+                            showLine: true,
+                            borderColor: '#0284c7',
+                            borderWidth: 2.5,
+                            backgroundColor: 'rgba(2, 132, 199, 0.05)',
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'ตำแหน่งของคุณ (Your Input)',
+                            data: [{ x: 1.615, y: 0.9919 }],
+                            borderColor: '#ffffff',
+                            backgroundColor: '#f43f5e',
+                            pointRadius: 8,
+                            pointHoverRadius: 10,
+                            borderWidth: 2,
+                            shadowBlur: 10,
+                            z: 10
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'nearest', intersect: false },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: { display: true, text: 'Undrained Shear Strength, Su (t/m²)', font: { family: 'Sarabun', weight: 'bold', size: 12 } },
+                            grid: { color: 'rgba(226, 232, 240, 0.6)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Adhesion Factor, α', font: { family: 'Sarabun', weight: 'bold', size: 12 } },
+                            grid: { color: 'rgba(226, 232, 240, 0.6)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(su, alpha) {
+            if (!chart) return;
+            chart.data.datasets[1].data = [{ x: su, y: alpha }];
+            chart.update('none');
+        }
+
+        function resetZoomChart() {
+            if (!chart) return;
+            chart.options.scales.x.min = undefined;
+            chart.options.scales.x.max = undefined;
+            chart.options.scales.y.min = undefined;
+            chart.options.scales.y.max = undefined;
+            chart.update();
+        }
+
+        function focusUserPoint() {
+            if (!chart) return;
+            const su = parseFloat(document.getElementById('suInput').value) || 1.615;
+            chart.options.scales.x.min = Math.max(0.78, su - 1.5);
+            chart.options.scales.x.max = su + 1.5;
+            chart.update();
+        }
+
+        function populateTable() {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+
+            rawData.forEach((row, idx) => {
+                const tr = document.createElement('tr');
+                tr.id = `row-su-${row[0].toFixed(3)}`;
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center text-slate-400 font-sans">${idx + 1}</td>
+                    <td class="p-2.5 text-center font-bold text-slate-800">${row[0].toFixed(3)}</td>
+                    <td class="p-2.5 text-center text-brand-700 font-bold">${row[1].toFixed(4)}</td>
+                    <td class="p-2.5 text-center text-[10px] text-slate-400 status-cell font-sans">อ้างอิง</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function highlightTableRow(su1, su2) {
+            document.querySelectorAll('#dataTableBody tr').forEach(r => {
+                r.classList.remove('bg-brand-50', 'border-brand-300');
+                const statusCell = r.querySelector('.status-cell');
+                if (statusCell) statusCell.innerText = 'อ้างอิง';
+            });
+
+            const row1 = document.getElementById(`row-su-${su1.toFixed(3)}`);
+            const row2 = document.getElementById(`row-su-${su2.toFixed(3)}`);
+
+            if (row1) {
+                row1.classList.add('bg-brand-50');
+                const s1 = row1.querySelector('.status-cell');
+                if (s1) s1.innerText = 'ขอบล่าง (Su1)';
+            }
+            if (row2) {
+                row2.classList.add('bg-brand-50');
+                const s2 = row2.querySelector('.status-cell');
+                if (s2) s2.innerText = 'ขอบบน (Su2)';
+            }
+        }
+
+        function filterTable() {
+            const query = document.getElementById('tableSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#dataTableBody tr');
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+            });
+        }
+
+        function toggleDetails() {
+            const sec = document.getElementById('detailsSection');
+            const btn = document.getElementById('toggleDetailsBtn');
+            sec.classList.toggle('hidden');
+            btn.innerText = sec.classList.contains('hidden') ? 'แสดงรายละเอียด' : 'ซ่อนรายละเอียด';
+        }
+
+        function copyExcelFormula() {
+            const formula = `=INDEX(B2:B245, MATCH(G2, A2:A245, 1)) + (G2 - INDEX(A2:A245, MATCH(G2, A2:A245, 1))) * (INDEX(B2:B245, MATCH(G2, A2:A245, 1) + 1) - INDEX(B2:B245, MATCH(G2, A2:A245, 1))) / (INDEX(A2:A245, MATCH(G2, A2:A245, 1) + 1) - INDEX(A2:A245, MATCH(G2, A2:A245, 1)))`;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = formula;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> คัดลอกแล้ว!`;
+            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        }
+
+        function exportToCSV() {
+            let csv = 'Su (t/m2),Alpha\n';
+            rawData.forEach(row => csv += `${row[0]},${row[1]}\n`);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "soil_alpha_data.csv";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function callGeminiAPI(prompt, systemInstruction = "") {
+            const apiKey = ""; // API Key provided automatically by runtime environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+
+            if (systemInstruction) {
+                payload.systemInstruction = { parts: [{ text: systemInstruction }] };
+            }
+
+            let delay = 1000;
+            for (let attempt = 0; attempt < 4; attempt++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                    throw new Error("Invalid API response format");
+                } catch (err) {
+                    if (attempt === 3) throw err;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // Simple Markdown formatter for clean HTML display
+        function formatMarkdown(text) {
+            if (!text) return "";
+            return text
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h3 class="text-base font-bold">$1</h3>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^\* (.*$)/gim, '<ul><li>$1</li></ul>')
+                .replace(/<\/ul>\s*<ul>/g, '')
+                .replace(/\n\n/g, '<p></p>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function switchAiTab(tab) {
+            const reportTab = document.getElementById('aiReportTab');
+            const chatTab = document.getElementById('aiChatTab');
+            const btnReport = document.getElementById('tabBtnReport');
+            const btnChat = document.getElementById('tabBtnChat');
+
+            if (tab === 'report') {
+                reportTab.classList.remove('hidden');
+                chatTab.classList.add('hidden');
+                btnReport.className = "px-4 py-2 text-ai-600 border-b-2 border-ai-600 flex items-center gap-1.5";
+                btnChat.className = "px-4 py-2 text-slate-500 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-1.5";
+            } else {
+                reportTab.classList.add('hidden');
+                chatTab.classList.remove('hidden');
+                btnChat.className = "px-4 py-2 text-ai-600 border-b-2 border-ai-600 flex items-center gap-1.5";
+                btnReport.className = "px-4 py-2 text-slate-500 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-1.5";
+            }
+        }
+
+        async function runAiAnalysis() {
+            const su = parseFloat(document.getElementById('suInput').value);
+            if (isNaN(su)) return;
+
+            const res = calculateInterpolatedAlpha(su);
+            const alpha = res.alpha.toFixed(4);
+            const fs = (res.alpha * su).toFixed(4);
+
+            const reportContainer = document.getElementById('aiReportContent');
+            const btn = document.getElementById('aiAnalyzeBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> กำลังวิเคราะห์...`;
+            reportContainer.innerHTML = `<div class="p-4 text-center text-ai-600 font-medium"><i class="fa-solid fa-sparkles fa-bounce mr-2"></i> Gemini AI กำลังประมวลผลสภาพชั้นดินและข้อแนะนำทางวิศวกรรมปฐพี...</div>`;
+
+            const systemPrompt = "คุณคือวิศวกรปฐพีวิศวกรรม (Senior Geotechnical Engineer) ผู้เชี่ยวชาญด้านการออกแบบกำลังรับน้ำหนักเสาเข็ม (Piles) และการวิเคราะห์กำลังแรงยึดเกาะผิว (Adhesion/Skin Friction) จาก Alpha Method (Tomlinson). ให้สรุปสั้นกระชับ เป็นภาษาไทย ใช้หัวข้อชัดเจน 3 ข้อ: 1) การจำแนกความแข็งของชั้นดิน (Soil Consistency), 2) พฤติกรรมแรงเสียดทานผิว (Skin Friction fs) และข้อสังเกตค่า Alpha, 3) ข้อเสนอแนะการเลือกชนิดเสาเข็ม (เสาเข็มตอก vs เสาเข็มเจาะ)";
+
+            const userPrompt = `โปรดวิเคราะห์ข้อมูลการทดสอบดินดังนี้:\n- Undrained Shear Strength (Su) = ${su} t/m²\n- Adhesion Factor (Alpha, α) = ${alpha}\n- Adhesion / Unit Skin Friction (fs = α * Su) = ${fs} t/m²`;
+
+            try {
+                const aiResponse = await callGeminiAPI(userPrompt, systemPrompt);
+                reportContainer.innerHTML = formatMarkdown(aiResponse);
+            } catch (err) {
+                reportContainer.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">เกิดข้อผิดพลาดในการเชื่อมต่อ AI: ${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> วิเคราะห์ด้วย AI`;
+            }
+        }
+
+        function setQuickQuery(text) {
+            document.getElementById('aiUserQuery').value = text;
+            sendAiChatQuery();
+        }
+
+        async function sendAiChatQuery() {
+            const queryInput = document.getElementById('aiUserQuery');
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            const answerContainer = document.getElementById('aiChatAnswer');
+            const sendBtn = document.getElementById('aiSendBtn');
+            const su = document.getElementById('suInput').value;
+
+            answerContainer.classList.remove('hidden');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+            answerContainer.innerHTML = `<div class="p-3 text-ai-600 font-medium"><i class="fa-solid fa-wand-magic-sparkles fa-pulse mr-2"></i> AI กำลังคิดคำตอบ...</div>`;
+
+            const systemPrompt = `คุณคือผู้เชี่ยวชาญด้านปฐพีวิศวกรรม (Geotechnical Engineering Specialist) คอยตอบคำถามวิศวกรเกี่ยวกับเรื่องกำลังยึดเกาะ Alpha Factor (α), Su, เสาเข็มตอก/เจาะ ตอบเป็นภาษาไทย มีหลักการทางวิศวกรรมชัดเจน กระชับ เข้าใจง่าย บริบทปัจจุบัน: ค่า Su = ${su} t/m²`;
+
+            try {
+                const aiResponse = await callGeminiAPI(query, systemPrompt);
+                answerContainer.innerHTML = formatMarkdown(aiResponse);
+            } catch (err) {
+                answerContainer.innerHTML = `<div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg">เกิดข้อผิดพลาดในการดึงคำตอบ: ${err.message}</div>`;
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i>`;
+            }
+        }
+
+        window.onload = function() {
+            populateTable();
+            initChart();
+            calculateAlpha();
+        };
+    </script>
+</body>
+</html>
